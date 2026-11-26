@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#141129" />
+<title>كنز المدينة — عالم جديد بالكامل</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+:root{
+  --panelA:#2b1e54;
+  --panelB:#121026;
+  --ink:#fbfaff;
+  --sub:#cbc5eb;
+  --glass:rgba(21,17,46,.78);
+  --border:rgba(196,176,255,.28);
+  --accent1:#4ef2e5;
+  --accent2:#ff78c4;
+  --accent3:#ffd46b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  margin:0;padding:0;width:100%;height:100%;overflow:hidden;
+  background:#141129;color:var(--ink);font-family:'Cairo',Tahoma,Arial,sans-serif;
+  overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none
+}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--accent1);outline-offset:2px}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+#startOverlay{
+  position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+  padding:16px;background:radial-gradient(circle at 50% 35%,rgba(125,78,224,.28),rgba(10,8,24,.84));
+  backdrop-filter:blur(8px);overflow:auto;touch-action:pan-y
+}
+#startOverlay.hidden{display:none}
+.start-card{
+  position:relative;width:min(540px,100%);border-radius:28px;padding:24px 26px;text-align:center;
+  background:linear-gradient(155deg,var(--panelA),var(--panelB));
+  border:1px solid var(--border);box-shadow:0 24px 80px rgba(4,2,15,.78)
+}
+.badge{
+  display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:800;
+  background:rgba(78,242,229,.14);color:var(--accent1);border:1px solid rgba(78,242,229,.35)
+}
+.title{margin:10px 0 6px;font-size:clamp(28px,5.5vw,40px);font-weight:900;line-height:1.35}
+.title span{
+  background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
+  -webkit-background-clip:text;background-clip:text;color:transparent
+}
+.desc{margin:0 auto 16px;max-width:440px;font-size:13.5px;line-height:1.85;color:var(--sub)}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 18px}
+.pick-btn{
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);
+  border-radius:16px;padding:10px 8px;font-size:12.5px;font-weight:800;transition:.15s
+}
+.pick-btn.active{border-color:var(--accent1);background:rgba(78,242,229,.16);box-shadow:0 0 0 1px rgba(78,242,229,.4)}
+.swatch{display:block;width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:3px solid rgba(255,255,255,.75)}
+.play-btn{
+  width:100%;border:none;border-radius:18px;padding:13px 18px;font-size:16px;font-weight:900;
+  color:#131029;background:linear-gradient(100deg,var(--accent1),#8b7aff 52%,var(--accent2));
+  box-shadow:0 10px 28px rgba(78,242,229,.28)
+}
+.help-line{margin:12px 0 0;font-size:11px;line-height:1.75;color:#afa9d6}
+
+#ui{position:fixed;inset:0;z-index:10;display:none;pointer-events:none}
+#ui.show{display:block}
+.box{background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(5,4,18,.45)}
+
+.top-right{
+  position:absolute;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));
+  width:min(340px,49vw);display:flex;flex-direction:column;gap:8px
+}
+.bar-top{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 11px;border-radius:16px}
+.bar-top strong{font-size:13.5px;white-space:nowrap}
+.icon-row{display:flex;gap:5px}
+.btn-ico{
+  pointer-events:auto;width:34px;height:34px;border-radius:11px;font-size:17px;
+  border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);
+  display:grid;place-items:center
+}
+.mission-box{padding:11px 13px;border-radius:17px}
+.mission-head{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:800;color:var(--accent1)}
+#clockText{color:var(--accent3);direction:ltr}
+#missionTitle{margin-top:3px;font-size:14px;font-weight:900}
+#missionSub{font-size:11px;color:var(--sub);margin-top:2px}
+#statusLine{font-size:10.5px;color:#b9ffdf;margin-top:6px}
+.meter{height:5px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:8px}
+#meterFill{height:100%;width:0;background:linear-gradient(90deg,var(--accent1),#b6ff8a);transition:width .3s}
+
+.top-left{
+  position:absolute;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px
+}
+.stats-pill{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:15px;
+  font-size:13px;font-weight:900;white-space:nowrap
+}
+.stats-pill b{color:var(--accent3)}
+.mini-map-btn{
+  pointer-events:auto;position:relative;width:132px;height:132px;padding:6px;border-radius:18px;
+  border:1px solid var(--border);background:var(--glass);overflow:hidden
+}
+#miniCanvas{width:100%;height:100%;border-radius:12px;display:block;background:#1b233d}
+.map-tag{position:absolute;bottom:10px;left:11px;font-size:10px;font-weight:800;text-shadow:0 2px 5px #000}
+
+#promptBanner{
+  position:absolute;bottom:104px;left:50%;transform:translateX(-50%);
+  padding:8px 16px;border-radius:15px;font-size:12.5px;font-weight:900;
+  opacity:0;transition:.2s;max-width:85vw;text-align:center
+}
+#promptBanner.show{opacity:1}
+
+#noticeToast{
+  position:fixed;top:24%;left:50%;transform:translate(-50%,-10px);z-index:45;
+  padding:10px 18px;border-radius:18px;font-size:13.5px;font-weight:900;
+  background:rgba(22,18,52,.94);border:1px solid rgba(196,176,255,.55);
+  box-shadow:0 12px 36px rgba(0,0,0,.5);opacity:0;transition:.22s;pointer-events:none;text-align:center;max-width:80vw
+}
+#noticeToast.show{opacity:1;transform:translate(-50%,0)}
+
+#stickArea{
+  position:absolute;bottom:max(22px,env(safe-area-inset-bottom));left:max(20px,env(safe-area-inset-left));
+  width:132px;height:132px;border-radius:50%;pointer-events:auto;touch-action:none
+}
+#stickRing{
+  position:absolute;inset:8px;border-radius:50%;
+  background:radial-gradient(circle,rgba(78,242,229,.14),rgba(139,122,255,.22));
+  border:2px solid rgba(255,255,255,.35)
+}
+#stickThumb{
+  position:absolute;top:39px;left:39px;width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(145deg,#ffffffd8,#a9bfffd8);border:2px solid #fff;
+  box-shadow:0 6px 18px rgba(0,0,0,.4)
+}
+
+#padArea{
+  position:absolute;bottom:max(22px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right));
+  display:flex;align-items:flex-end;gap:8px;pointer-events:auto
+}
+.pad-btn{
+  width:64px;height:66px;border-radius:20px;border:1px solid rgba(255,255,255,.45);
+  background:linear-gradient(155deg,rgba(116,96,232,.88),rgba(39,34,104,.92));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;box-shadow:0 8px 20px rgba(7,6,26,.5)
+}
+.pad-btn b{font-size:22px;line-height:1.15}
+.pad-btn.small{width:54px;height:56px;background:linear-gradient(155deg,rgba(45,194,214,.85),rgba(28,84,125,.9))}
+.pad-btn.spray{background:linear-gradient(155deg,#6ef2ff,#2188d8);color:#09253d}
+.pad-btn.act{background:linear-gradient(155deg,#ffbe6b,#b85d3b);color:#261224}
+
+.modal{
+  position:fixed;inset:0;z-index:55;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(8,6,22,.74);backdrop-filter:blur(7px);touch-action:pan-y
+}
+.modal.open{display:flex}
+.modal-card{
+  width:min(430px,100%);max-height:88dvh;overflow:auto;padding:22px;border-radius:24px;
+  background:linear-gradient(155deg,var(--panelA),var(--panelB));border:1px solid var(--border);
+  box-shadow:0 24px 70px rgba(0,0,0,.72)
+}
+.modal-card h2{margin:0 0 12px;font-size:21px}
+.row-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.14);font-size:13px;font-weight:800
+}
+.toggle-pill{
+  border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.12);
+  border-radius:12px;padding:6px 12px;min-width:80px;font-size:12px;font-weight:800
+}
+.toggle-pill.on{border-color:var(--accent1);background:rgba(78,242,229,.22);color:#b7fff8}
+.glb-panel{
+  margin-top:12px;padding:11px;border-radius:14px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);font-size:12px
+}
+.glb-panel label{display:block;font-weight:800;color:var(--accent1);margin-bottom:6px}
+.glb-panel small{display:block;color:var(--sub);margin-top:6px;line-height:1.6}
+.modal-foot{display:flex;gap:8px;margin-top:16px}
+.modal-foot button{
+  flex:1;padding:10px;border-radius:13px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.1);font-weight:800
+}
+.modal-foot .warn{color:#ffb8c9}
+#mapFull{width:100%;aspect-ratio:1;max-height:54vh;border-radius:18px;border:1px solid rgba(255,255,255,.3);background:#182038}
+@media(max-width:640px){
+  .pad-btn{width:50px;height:54px;border-radius:15px;font-size:10px}
+  .pad-btn b{font-size:18px}
+  .pad-btn.small{width:42px;height:46px}
+  #padArea{gap:5px;right:max(10px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom))}
+  #stickArea{width:116px;height:116px;left:max(12px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom))}
+  #stickThumb{width:48px;height:48px;top:34px;left:34px}
+  .mini-map-btn{width:98px;height:98px;border-radius:14px}
+  .top-right{width:54vw}
+  .stats-pill{font-size:11px;padding:6px 9px;gap:6px}
+  #promptBanner{bottom:86px;font-size:11.5px;padding:7px 12px}
+}
+</style>
+</head>
+<body>
+<canvas id="stage" aria-label="عالم كنز المدينة ثلاثي الأبعاد"></canvas>
+
+<div id="startOverlay">
+  <div class="start-card">
+    <span class="badge">إصدار جديد كلياً • تصميم مدينة وموسيقى ونماذج GLB</span>
+    <h1 class="title">كنز <span>المدينة</span></h1>
+    <p class="desc">عالم جديد بتفاصيل معمارية مختلفة، حدائق ومقاعد ومراجيح وسوبر ماركت، وموسيقى ونغمات واضحة، مع دعم مباشر لملفات GLB.</p>
+    <div class="picks">
+      <button class="pick-btn active" data-theme="0"><span class="swatch" style="background:#8f75ff"></span>شفق بنفسجي</button>
+      <button class="pick-btn" data-theme="1"><span class="swatch" style="background:#3de8d8"></span>واحة فيروزية</button>
+      <button class="pick-btn" data-theme="2"><span class="swatch" style="background:#ff7ac2"></span>غروب وردي</button>
+    </div>
+    <button class="play-btn" id="playStartBtn">✨ ابدأ اللعب الآن</button>
+    <p class="help-line">الجوال والآيباد: عصا الحركة يسار + سحب الشاشة لتدوير الكاميرا<br>الكمبيوتر: WASD أو الأسهم للحركة، Shift للجري، Space للقفز، E للتفاعل، F للرش</p>
+  </div>
+</div>
+
+<div id="ui">
+  <div class="top-right">
+    <div class="bar-top box">
+      <strong>💎 كنز المدينة</strong>
+      <div class="icon-row">
+        <button class="btn-ico" id="camBtn" title="إعادة ضبط الكاميرا">🎥</button>
+        <button class="btn-ico" id="soundBtn" title="تشغيل أو إيقاف الصوت والموسيقى">🔇</button>
+        <button class="btn-ico" id="musicBtn" title="تبديل الموسيقى الخلفية">🎵</button>
+        <button class="btn-ico" id="cfgBtn" title="الإعدادات وملفات GLB">⚙️</button>
+      </div>
+    </div>
+    <div class="mission-box box">
+      <div class="mission-head">
+        <span>✦ المهمة الحالية</span>
+        <span id="clockText">☀️ 09:00</span>
+      </div>
+      <div id="missionTitle">اجمع الجواهر (0/5)</div>
+      <div id="missionSub">استكشف الساحة والحديقة والبازار وحول المباني</div>
+      <div id="statusLine">🌸 الزهور المزهرة 0/3 · 💧 الماء 3</div>
+      <div class="meter"><div id="meterFill"></div></div>
+    </div>
+  </div>
+
+  <div class="top-left">
+    <div class="stats-pill box">
+      <span>💎 <b id="uiGems">0</b>/5</span>
+      <span>🪙 <b id="uiCoins">0</b></span>
+      <span id="uiKey">🔒</span>
+    </div>
+    <div class="stats-pill box">
+      <span>💦 ماء <b id="uiWater">12/12</b></span>
+      <span>❤️ <b id="uiHearts">♥♥♥</b></span>
+    </div>
+    <button class="mini-map-btn" id="openMapBtn" aria-label="فتح الخريطة الكاملة">
+      <canvas id="miniCanvas" width="240" height="240"></canvas>
+      <span class="map-tag">الخريطة ⛶</span>
+    </button>
+  </div>
+
+  <div id="promptBanner" class="box"></div>
+
+  <div id="stickArea" aria-label="عصا الحركة">
+    <div id="stickRing"></div>
+    <div id="stickThumb"></div>
+  </div>
+
+  <div id="padArea">
+    <button class="pad-btn" id="btnJump"><b>↥</b>قفز</button>
+    <button class="pad-btn small" id="btnRun"><b>⚡</b>جري</button>
+    <button class="pad-btn spray" id="btnSpray"><b>💦</b>رش</button>
+    <button class="pad-btn act" id="btnAct"><b>✋</b>تفاعل</button>
+    <button class="pad-btn small" id="btnRescue" title="العودة للساحة"><b>↺</b>إنقاذ</button>
+  </div>
+</div>
+
+<div id="noticeToast"></div>
+
+<div class="modal" id="cfgModal">
+  <div class="modal-card">
+    <h2>⚙️ الإعدادات وربط GLB</h2>
+    <div class="row-item">
+      <span>🔊 الأصوات والنغمات</span>
+      <button class="toggle-pill on" id="toggleSound">مفعّلة</button>
+    </div>
+    <div class="row-item">
+      <span>🎵 موسيقى الخلفية الهادئة</span>
+      <button class="toggle-pill on" id="toggleMusic">مفعّلة</button>
+    </div>
+    <div class="glb-panel">
+      <label for="glbPicker">📦 ربط ملفات GLB (مباني، أشجار، سيارات، شخصية)</label>
+      <input type="file" id="glbPicker" accept=".glb,model/gltf-binary" multiple />
+      <small id="glbInfo">لم يتم تحميل ملفات GLB خارجية بعد — يمكنكِ اختيار ملفات .glb هنا أو تعريف روابطها في window.CITY_GLB_MODELS.</small>
+    </div>
+    <div class="modal-foot">
+      <button class="warn" id="resetRunBtn">إعادة المغامرة</button>
+      <button id="closeCfgBtn">متابعة اللعب</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mapModal">
+  <div class="modal-card">
+    <h2>🗺️ خريطة المدينة</h2>
+    <canvas id="mapFull" width="560" height="560"></canvas>
+    <p style="font-size:12px;color:var(--sub);margin:10px 0 14px">أبيض: موقعك · بنفسجي: جواهر · أزرق: المفتاح · ذهبي: صندوق الكنز</p>
+    <button class="play-btn" id="closeMapBtn">العودة للمدينة</button>
+  </div>
+</div>
+
+<div class="modal" id="winModal">
+  <div class="modal-card" style="text-align:center">
+    <div style="font-size:56px">🏆</div>
+    <h2>فتحتِ كنز المدينة!</h2>
+    <p style="font-size:13px;color:var(--sub)" id="winSummary"></p>
+    <button class="play-btn" id="keepExploringBtn">مواصلة الاستكشاف</button>
+    <div class="modal-foot">
+      <button id="playAgainBtn">إعادة من البداية</button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const $ = id => document.getElementById(id);
+const canvas = $('stage');
+
+const configuredGLBUrls = typeof window.CITY_GLB_MODELS === 'object' && window.CITY_GLB_MODELS ? window.CITY_GLB_MODELS : {};
+
+const state = {
+  started: false,
+  paused: false,
+  mapOpen: false,
+  soundOn: true,
+  musicOn: true,
+  themeIndex: 0,
+  gems: 0,
+  coins: 0,
+  hasKey: false,
+  openedChest: false,
+  waterAmmo: 12,
+  waterCharges: 3,
+  hearts: 3,
+  flowersBloomed: 0,
+  seatMode: null,
+  boostUntil: 0,
+  sprintHeld: false,
+  sprintBurstUntil: 0
+};
+
+let toastTimer = null;
+function showNotice(text, ms = 2300) {
+  const el = $('noticeToast');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+let audioCtx = null, bgmInterval = null, bgmStep = 0;
+function wakeAudio() {
+  if (!state.soundOn) return null;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    ensureMusicLoop();
+    return audioCtx;
+  } catch {
+    return null;
+  }
+}
+
+function playNote(freq, dur = 0.14, type = 'triangle', vol = 0.08, delay = 0) {
+  if (!state.soundOn) return;
+  const ctx = audioCtx;
+  if (!ctx || ctx.state !== 'running') return;
+  try {
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  } catch {}
+}
+
+function playSequence(notes, gap = 0.1, type = 'triangle', vol = 0.085) {
+  notes.forEach((n, idx) => playNote(n, gap * 1.2, type, vol, idx * gap));
+}
+
+const gentleScale = [261.63, 329.63, 392.00, 493.88, 523.25, 493.88, 392.00, 329.63];
+function ensureMusicLoop() {
+  if (bgmInterval) return;
+  bgmInterval = setInterval(() => {
+    if (!state.started || state.paused || !state.soundOn || !state.musicOn) return;
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    const note = gentleScale[bgmStep % gentleScale.length];
+    playNote(note, 0.36, 'sine', 0.024, 0);
+    bgmStep++;
+  }, 540);
+}
+
+let lastStepTime = 0;
+function playFootstep(isFast) {
+  const now = performance.now() / 1000;
+  const interval = isFast ? 0.25 : 0.38;
+  if (now - lastStepTime < interval) return;
+  lastStepTime = now;
+  playNote(isFast ? 210 : 155, 0.06, 'triangle', 0.045, 0);
+}
+
+function syncAudioControls() {
+  if ($('soundBtn')) $('soundBtn').textContent = state.soundOn ? '🔊' : '🔇';
+  if ($('toggleSound')) {
+    $('toggleSound').textContent = state.soundOn ? 'مفعّلة' : 'متوقفة';
+    $('toggleSound').classList.toggle('on', state.soundOn);
+  }
+  if ($('toggleMusic')) {
+    $('toggleMusic').textContent = state.musicOn ? 'مفعّلة' : 'متوقفة';
+    $('toggleMusic').classList.toggle('on', state.musicOn);
+  }
+}
+
+function updateHud() {
+  $('uiGems').textContent = String(state.gems);
+  $('uiCoins').textContent = String(state.coins);
+  $('uiKey').textContent = state.hasKey ? '🗝️' : '🔒';
+  $('uiWater').textContent = `${state.waterAmmo}/12`;
+  $('uiHearts').textContent = '♥'.repeat(Math.max(0, state.hearts)) || '♡';
+  $('statusLine').textContent = `🌸 الزهور المزهرة ${state.flowersBloomed}/3 · 💧 الماء ${state.waterCharges}`;
+
+  const progress = Math.min(100, Math.round(
+    (state.gems / 5) * 60 +
+    (state.flowersBloomed / 3) * 15 +
+    (state.hasKey ? 10 : 0) +
+    (state.openedChest ? 15 : 0)
+  ));
+  $('meterFill').style.width = `${progress}%`;
+
+  if (state.openedChest) {
+    $('missionTitle').textContent = 'أتممتِ اكتشاف الكنز!';
+    $('missionSub').textContent = 'يمكنكِ مواصلة اللعب بحرية في المدينة';
+  } else if (state.gems < 5) {
+    $('missionTitle').textContent = `اجمع الجواهر (${state.gems}/5)`;
+    $('missionSub').textContent = 'تجوّلي في الساحة والحديقة والبازار وحول المباني';
+  } else if (!state.hasKey) {
+    $('missionTitle').textContent = 'ابحثي عن المفتاح الذهبي';
+    $('missionSub').textContent = 'المفتاح في منطقة الحديقة والنافورة';
+  } else {
+    $('missionTitle').textContent = 'افتحي صندوق الكنز';
+    $('missionSub').textContent = 'توجهي إلى الصندوق لإتمام المغامرة';
+  }
+}
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1b1736);
+scene.fog = new THREE.FogExp2(0x8faac4, 0.0038);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
+renderer.setSize(window.innerWidth, window.innerHeight, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.15, 240);
+camera.position.set(0, 7, 22);
+
+const hemi = new THREE.HemisphereLight(0xf3f7ff, 0x6e6888, 1.95);
+scene.add(hemi);
+const dirLight = new THREE.DirectionalLight(0xfff1d6, 2.0);
+dirLight.position.set(-28, 54, -42);
+scene.add(dirLight);
+const rimLight = new THREE.DirectionalLight(0x8ceeff, 0.9);
+rimLight.position.set(28, 22, 26);
+scene.add(rimLight);
+
+const skyUniforms = {
+  top: { value: new THREE.Color(0x1f366e) },
+  mid: { value: new THREE.Color(0x6998c9) },
+  bot: { value: new THREE.Color(0xdbe8f2) }
+};
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(200, 28, 16),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: skyUniforms,
+    vertexShader: 'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader: 'varying vec3 vP;uniform vec3 top;uniform vec3 mid;uniform vec3 bot;void main(){float h=normalize(vP).y;vec3 c=mix(bot,mid,smoothstep(-0.1,0.32,h));c=mix(c,top,smoothstep(0.25,0.85,h));gl_FragColor=vec4(c,1.);}'
+  })
+);
+scene.add(skyDome);
+
+const boxColliders = [];
+const circleColliders = [];
+const buildingGroups = [];
+const treeGroups = [];
+const carGroups = [];
+const lampBulbs = [];
+const animatedProps = [];
+
+function addBoxCollider(x, z, w, d) {
+  boxColliders.push({ minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2 });
+}
+function addCircleCollider(x, z, r) {
+  circleColliders.push({ x, z, r });
+}
+function makeBox(x, y, z, w, h, d, color, emissiveHex = 0, emInt = 0, parent = scene) {
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.58,
+    metalness: 0.16,
+    emissive: emissiveHex,
+    emissiveIntensity: emInt
+  });
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  mesh.position.set(x, y, z);
+  parent.add(mesh);
+  return mesh;
+}
+function makeCyl(x, y, z, rt, rb, h, color, seg = 16, parent = scene) {
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.18 });
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  mesh.position.set(x, y, z);
+  parent.add(mesh);
+  return mesh;
+}
+function makeSignBoard(text, x, y, z, width = 4.6, rotY = 0) {
+  const cv = document.createElement('canvas');
+  cv.width = 512; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#191536';
+  ctx.fillRect(0, 0, 512, 128);
+  ctx.strokeStyle = '#4ef2e5';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(8, 8, 496, 112);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 54px Arial,Tahoma,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 66, 460);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(width, width * 0.25), new THREE.MeshBasicMaterial({ map: tex }));
+  board.position.set(x, y, z);
+  board.rotation.y = rotY;
+  scene.add(board);
+  return board;
+}
+
+makeBox(0, -0.4, 0, 156, 0.8, 156, 0x2d4f46);
+makeBox(0, 0.02, 0, 13.4, 0.05, 148, 0x2d3244);
+makeBox(0, 0.025, 0, 148, 0.05, 13.4, 0x2d3244);
+makeBox(0, 0.04, 0, 21, 0.06, 21, 0x3b335c);
+
+for (let k = -64; k <= 64; k += 8) {
+  if (Math.abs(k) < 11) continue;
+  makeBox(0, 0.055, k, 0.24, 0.02, 3.6, 0xffd46b);
+  makeBox(k, 0.055, 0, 3.6, 0.02, 0.24, 0xffd46b);
+}
+for (let i = -3; i <= 3; i++) {
+  makeBox(i * 1.35, 0.06, 10.2, 0.65, 0.02, 2.2, 0xf5f3ff);
+  makeBox(i * 1.35, 0.06, -10.2, 0.65, 0.02, 2.2, 0xf5f3ff);
+  makeBox(10.2, 0.06, i * 1.35, 2.2, 0.02, 0.65, 0xf5f3ff);
+  makeBox(-10.2, 0.06, i * 1.35, 2.2, 0.02, 0.65, 0xf5f3ff);
+}
+
+addCircleCollider(0, 0, 3.1);
+makeCyl(0, 0.35, 0, 2.9, 3.1, 0.65, 0x6b53a6, 28);
+const basinWater = makeCyl(0, 0.72, 0, 2.3, 2.4, 0.18, 0x38e8f5, 28);
+basinWater.material.transparent = true;
+basinWater.material.opacity = 0.85;
+makeCyl(0, 1.5, 0, 0.35, 0.55, 1.5, 0xe8dcff, 18);
+const spireGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.65, 0), new THREE.MeshStandardMaterial({ color: 0xff78c4, emissive: 0xff52b2, emissiveIntensity: 0.7 }));
+spireGem.position.set(0, 2.55, 0);
+scene.add(spireGem);
+animatedProps.push(t => { spireGem.rotation.y = t * 1.3; spireGem.position.y = 2.55 + Math.sin(t * 2.4) * 0.14; });
+
+function createModernTower(x, z, w, d, h, wallColor, trimColor, domeColor, signText) {
+  const grp = new THREE.Group();
+  grp.position.set(x, 0, z);
+  scene.add(grp);
+
+  // Plinth / ground floor base
+  makeBox(0, 1.1, 0, w + 0.9, 2.2, d + 0.9, 0x2a2542, 0, 0, grp);
+  // Main tower volume
+  makeBox(0, h / 2 + 0.08, 0, w, h, d, wallColor, 0, 0, grp);
+  // Upper stepped crown & terrace parapet
+  const upperH = h * 0.34;
+  makeBox(0, h + upperH / 2 + 0.15, 0, w * 0.68, upperH, d * 0.68, wallColor, 0, 0, grp);
+  makeBox(0, h + 0.35, 0, w + 0.9, 0.48, d + 0.9, trimColor, trimColor, 0.25, grp);
+  makeBox(0, h + upperH + 0.3, 0, w * 0.74, 0.36, d * 0.74, trimColor, trimColor, 0.22, grp);
+
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(Math.min(w, d) * 0.24, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5),
+    new THREE.MeshStandardMaterial({ color: domeColor, emissive: domeColor, emissiveIntensity: 0.22, roughness: 0.35, metalness: 0.35 })
+  );
+  dome.position.set(0, h + upperH + 0.45, 0);
+  grp.add(dome);
+
+  // Corner pilasters
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1, 1]) {
+      makeBox(sx * (w / 2 + 0.14), h / 2 + 0.08, sz * (d / 2 + 0.14), 0.38, h, 0.38, trimColor, 0, 0, grp);
+    }
+  }
+
+  // Windows across front & back faces
+  const rows = Math.max(2, Math.floor(h / 3.2));
+  const cols = Math.max(2, Math.floor(w / 3.4));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const wx = -w / 2 + 1.8 + c * ((w - 3.6) / Math.max(1, cols - 1));
+      const wy = 2.8 + r * 3.0;
+      const warm = (r + c + Math.floor(Math.abs(x))) % 3 === 0;
+      const wMat = new THREE.MeshStandardMaterial({
+        color: warm ? 0xffe49e : 0x67e8ff,
+        emissive: warm ? 0xffb84d : 0x29a8df,
+        emissiveIntensity: 0.45
+      });
+      lampBulbs.push(wMat);
+      const winF = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 0.14), wMat);
+      winF.position.set(wx, wy, d / 2 + 0.05);
+      const ledgeF = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.12, 0.32), new THREE.MeshStandardMaterial({ color: 0xe6e1f5 }));
+      ledgeF.position.set(wx, wy - 0.74, d / 2 + 0.12);
+      const winB = winF.clone();
+      winB.position.z = -d / 2 - 0.05;
+      grp.add(winF, ledgeF, winB);
+    }
+  }
+
+  addBoxCollider(x, z, w + 0.5, d + 0.5);
+  buildingGroups.push({ group: grp, x, z, w, d, h });
+  if (signText) makeSignBoard(signText, x, h + upperH + 1.4, z - d * 0.34 - 0.25, Math.min(5.5, w * 0.72), 0);
+}
+
+createModernTower(27, -31, 20, 18, 21, 0x3a2e6b, 0x4ef2e5, 0xff78c4, 'NEON PLAZA');
+createModernTower(-28, -29, 18, 17, 17, 0x2a4866, 0xffd46b, 0x4ef2e5, 'STAR MARKET');
+createModernTower(43, 34, 16, 18, 24, 0x4a2c5e, 0xff78c4, 0xffd46b, 'MOON TOWER');
+createModernTower(-44, 36, 15, 19, 19, 0x26525c, 0x4ef2e5, 0x8b7aff, 'SKY LOUNGE');
+createModernTower(-27, 48, 18, 17, 14, 0x563954, 0xffd46b, 0x4ef2e5, 'ART DOME');
+createModernTower(47, -15, 14, 14, 25, 0x27355c, 0x8b7aff, 0x4ef2e5, null);
+createModernTower(-48, -17, 15, 14, 22, 0x382859, 0xff78c4, 0xffd46b, null);
+
+function createTree(x, z, scale = 1) {
+  const grp = new THREE.Group();
+  grp.position.set(x, 0, z);
+  grp.scale.setScalar(scale);
+  scene.add(grp);
+
+  makeCyl(0, 1.35, 0, 0.16, 0.28, 2.7, 0x6b442a, 12, grp);
+  const crown1 = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.55, 1),
+    new THREE.MeshStandardMaterial({ color: 0x2fb872, roughness: 0.75 })
+  );
+  crown1.position.set(0, 3.25, 0);
+  const crown2 = new THREE.Mesh(
+    new THREE.ConeGeometry(1.25, 2.2, 12),
+    new THREE.MeshStandardMaterial({ color: 0x45d483, roughness: 0.72 })
+  );
+  crown2.position.set(0, 4.35, 0);
+  grp.add(crown1, crown2);
+
+  addCircleCollider(x, z, 0.35 * scale);
+  treeGroups.push({ group: grp, x, z, scale });
+}
+
+for (const [tx, tz] of [
+  [-11.5, 15], [11.5, 15], [-11.5, -15], [11.5, -15],
+  [12, -22], [12, -39], [-12, -37], [-12, -48],
+  [12, 46], [-12, 50], [-34, 17], [-18, 17], [-34, 35], [-18, 35]
+]) {
+  createTree(tx, tz, 0.95);
+}
+
+function createCar(colorHex) {
+  const car = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.48, roughness: 0.28 });
+  const cabinMat = new THREE.MeshStandardMaterial({ color: 0x8beeff, metalness: 0.2, roughness: 0.15 });
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x181a24, roughness: 0.8 });
+  const headMat = new THREE.MeshStandardMaterial({ color: 0xfff5c0, emissive: 0xffe27a, emissiveIntensity: 1.2 });
+
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.62, 3.5), bodyMat);
+  chassis.position.y = 0.62;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.58, 0.56, 1.85), cabinMat);
+  cabin.position.set(0, 1.15, -0.15);
+  const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.12, 0.35), bodyMat);
+  spoiler.position.set(0, 1.02, 1.55);
+
+  const lampL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.08), headMat);
+  lampL.position.set(-0.62, 0.65, -1.76);
+  const lampR = lampL.clone();
+  lampR.position.x = 0.62;
+
+  car.add(chassis, cabin, spoiler, lampL, lampR);
+
+  for (const sx of [-1, 1]) {
+    for (const sz of [-1.05, 1.05]) {
+      const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.22, 14), wheelMat);
+      wh.rotation.z = Math.PI / 2;
+      wh.position.set(sx * 0.92, 0.36, sz);
+      car.add(wh);
+    }
+  }
+  return car;
+}
+
+const parkedSpecs = [
+  [-3.6, -30, 0xff78c4, 0],
+  [3.6, -45, 0x4ef2e5, Math.PI],
+  [-3.6, 35, 0xffd46b, Math.PI],
+  [3.6, 51, 0x9b7aff, 0]
+];
+for (const [px, pz, col, rot] of parkedSpecs) {
+  const c = createCar(col);
+  c.position.set(px, 0.05, pz);
+  c.rotation.y = rot;
+  scene.add(c);
+  addBoxCollider(px, pz, 2.0, 3.6);
+  carGroups.push(c);
+}
+
+const trafficCars = [];
+const trafficSpecs = [
+  ['z', -2.1, 14, 58, 4.5, 0x4ef2e5, 0.15],
+  ['z', 2.1, -58, -14, -4.2, 0xff78c4, 0.52],
+  ['x', 2.1, -58, -14, 4.1, 0xffd46b, 0.33],
+  ['x', -2.1, 14, 58, -3.9, 0x9b7aff, 0.74]
+];
+for (const [axis, lane, from, to, speed, col, phase] of trafficSpecs) {
+  const c = createCar(col);
+  scene.add(c);
+  carGroups.push(c);
+  trafficCars.push({ mesh: c, axis, lane, from, to, speed, t: phase });
+}
+
+makeBox(-26, 0.06, 26, 24, 0.08, 24, 0x2b7a5b);
+makeBox(-26, 0.11, 26, 2.4, 0.04, 19, 0xd8d2c7);
+makeSignBoard('SECRET GARDEN', -26, 4.4, 13.8, 5.2, 0);
+
+const flowerSpots = [[-29.5, 21], [-20.5, 31], [-30.5, 31]];
+const flowerColors = [0xff78c4, 0xffd46b, 0x4ef2e5];
+const flowerBeds = flowerSpots.map(([fx, fz], idx) => {
+  makeBox(fx, 0.14, fz, 1.7, 0.14, 1.2, 0x6e472b);
+  const bud = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 8), new THREE.MeshStandardMaterial({ color: 0x45c46b }));
+  bud.position.set(fx, 0.25, fz);
+  const bloom = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(0.32, 0),
+    new THREE.MeshStandardMaterial({ color: flowerColors[idx], emissive: flowerColors[idx], emissiveIntensity: 0.45 })
+  );
+  bloom.position.set(fx, 0.55, fz);
+  bloom.visible = false;
+  scene.add(bud, bloom);
+  return { x: fx, z: fz, watered: false, bloom, label: 'اسقِ حوض الزهور (💧)' };
+});
+
+const swingFrame = new THREE.Group();
+swingFrame.position.set(-18.8, 0.08, 22);
+scene.add(swingFrame);
+for (const sx of [-1.8, 1.8]) {
+  const legA = makeBox(sx, 1.55, -0.65, 0.16, 3.2, 0.16, 0x6b7c93, 0, 0, swingFrame);
+  legA.rotation.x = 0.16;
+  const legB = makeBox(sx, 1.55, 0.65, 0.16, 3.2, 0.16, 0x6b7c93, 0, 0, swingFrame);
+  legB.rotation.x = -0.16;
+  addCircleCollider(-18.8 + sx, 22, 0.25);
+}
+makeBox(0, 3.1, 0, 3.9, 0.2, 0.2, 0x8b7aff, 0, 0, swingFrame);
+const swingPivot = new THREE.Group();
+swingPivot.position.set(0, 3.05, 0);
+swingFrame.add(swingPivot);
+for (const sx of [-0.7, 0.7]) makeCyl(sx, -1.1, 0, 0.03, 0.03, 2.1, 0xdbe8f2, 8, swingPivot);
+makeBox(0, -2.18, 0, 1.65, 0.14, 0.7, 0xffd46b, 0, 0, swingPivot);
+
+// Decorative benches in Secret Garden & plaza
+function createParkBench(bx, bz, rotY = 0) {
+  const bGrp = new THREE.Group();
+  bGrp.position.set(bx, 0.08, bz);
+  bGrp.rotation.y = rotY;
+  makeBox(0, 0.45, 0, 2.0, 0.12, 0.68, 0xb87344, 0, 0, bGrp);
+  makeBox(0, 0.85, -0.28, 2.0, 0.55, 0.1, 0xb87344, 0, 0, bGrp);
+  for (const lx of [-0.82, 0.82]) {
+    makeBox(lx, 0.22, 0, 0.12, 0.44, 0.62, 0x2c293d, 0, 0, bGrp);
+  }
+  scene.add(bGrp);
+  addCircleCollider(bx, bz, 0.45);
+}
+createParkBench(-29, 15, 0);
+createParkBench(-22, 37, Math.PI);
+createParkBench(-8.5, 11.5, Math.PI / 2);
+createParkBench(8.5, -11.5, -Math.PI / 2);
+
+// Streetlamps along main avenues
+function createStreetLamp(lx, lz) {
+  const lGrp = new THREE.Group();
+  lGrp.position.set(lx, 0.05, lz);
+  makeCyl(0, 2.1, 0, 0.08, 0.14, 4.2, 0x363b52, 10, lGrp);
+  const bulbMat = new THREE.MeshStandardMaterial({ color: 0xfff0b8, emissive: 0xffcf6e, emissiveIntensity: 0.7 });
+  lampBulbs.push(bulbMat);
+  const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10), bulbMat);
+  lantern.position.set(0, 4.3, 0);
+  lGrp.add(lantern);
+  scene.add(lGrp);
+  addCircleCollider(lx, lz, 0.22);
+}
+for (const [sx, sz] of [[-7.6, 18], [7.6, 18], [-7.6, -18], [7.6, -18], [18, -7.6], [18, 7.6], [-18, -7.6], [-18, 7.6]]) {
+  createStreetLamp(sx, sz);
+}
+
+makeBox(-25.5, 0.1, -51, 14.5, 0.12, 14.5, 0x39325c);
+makeSignBoard('SUPER MARKET', -25.5, 5.2, -43.5, 7.4, 0);
+makeSignBoard('CITY BAZAAR', -27, 4.8, -10.5, 5.0, 0);
+
+const spotsOfInterest = [
+  { kind: 'bench', x: -29, z: 15, label: 'اجلسي على المقعد' },
+  { kind: 'bench', x: -22, z: 37, label: 'اجلسي على المقعد' },
+  { kind: 'swing', x: -18.8, z: 22, label: 'العبي في المرجوحة' },
+  { kind: 'shop', x: -25.5, z: -46, label: 'تزوّدي بالماء والطاقة (20 عملة)' },
+  ...flowerBeds
+];
+
+const playerPos = new THREE.Vector3(0, 0.08, 14);
+let velY = 0, onGround = true, stridePhase = 0;
+
+const heroGroup = new THREE.Group();
+heroGroup.position.copy(playerPos);
+scene.add(heroGroup);
+
+const heroBody = new THREE.Group();
+heroGroup.add(heroBody);
+
+const paletteList = [
+  { suit: 0x8f75ff, trim: 0x4ef2e5, hair: 0x362015 },
+  { suit: 0x22c7b8, trim: 0xffd46b, hair: 0x2b1d14 },
+  { suit: 0xff78c4, trim: 0x4ef2e5, hair: 0x422218 }
+];
+const suitMat = new THREE.MeshStandardMaterial({ color: paletteList[0].suit, roughness: 0.5 });
+const trimMat = new THREE.MeshStandardMaterial({ color: paletteList[0].trim, roughness: 0.4 });
+const hairMat = new THREE.MeshStandardMaterial({ color: paletteList[0].hair, roughness: 0.75 });
+const skinMat = new THREE.MeshStandardMaterial({ color: 0xf7cdb4, roughness: 0.65 });
+
+function applyHeroPalette() {
+  const p = paletteList[state.themeIndex] || paletteList[0];
+  suitMat.color.setHex(p.suit);
+  trimMat.color.setHex(p.trim);
+  hairMat.color.setHex(p.hair);
+}
+
+const torsoMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.55, 6, 12), suitMat);
+torsoMesh.position.y = 1.25;
+const sashMesh = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.22, 0.42), trimMat);
+sashMesh.position.y = 1.38;
+const packMesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.52, 0.24), hairMat);
+packMesh.position.set(0, 1.3, 0.26);
+heroBody.add(torsoMesh, sashMesh, packMesh);
+
+const defaultHeadGroup = new THREE.Group();
+defaultHeadGroup.position.y = 2.05;
+const headSphere = new THREE.Mesh(new THREE.SphereGeometry(0.34, 18, 16), skinMat);
+const hairDome = new THREE.Mesh(new THREE.SphereGeometry(0.355, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.58), hairMat);
+hairDome.position.set(0, 0.03, 0.02);
+hairDome.rotation.x = -0.15;
+defaultHeadGroup.add(headSphere, hairDome);
+for (const s of [-1, 1]) {
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 10), new THREE.MeshBasicMaterial({ color: 0x171429 }));
+  eye.position.set(s * 0.12, 0.03, -0.31);
+  defaultHeadGroup.add(eye);
+}
+heroBody.add(defaultHeadGroup);
+
+function buildLimb(x, y, matRef, len = 0.62, r = 0.11) {
+  const piv = new THREE.Group();
+  piv.position.set(x, y, 0);
+  const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 4, 10), matRef);
+  mesh.position.y = -len * 0.55;
+  piv.add(mesh);
+  heroBody.add(piv);
+  return piv;
+}
+const legL = buildLimb(-0.16, 0.85, hairMat, 0.62, 0.11);
+const legR = buildLimb(0.16, 0.85, hairMat, 0.62, 0.11);
+const armL = buildLimb(-0.42, 1.62, skinMat, 0.5, 0.09);
+const armR = buildLimb(0.42, 1.62, skinMat, 0.5, 0.09);
+
+const gemCoords = [[0, 6.5], [-24, 21], [22, -24], [-25, -48], [34, 24]];
+const gemsList = gemCoords.map(([gx, gz], idx) => {
+  const grp = new THREE.Group();
+  grp.position.set(gx, 1.0, gz);
+  const stone = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.42, 0),
+    new THREE.MeshStandardMaterial({ color: 0x4ef2e5, emissive: 0x1ec8d4, emissiveIntensity: 0.55 })
+  );
+  const haloRing = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.04, 8, 22), new THREE.MeshBasicMaterial({ color: 0xffd46b }));
+  haloRing.rotation.x = Math.PI / 2;
+  grp.add(stone, haloRing);
+  scene.add(grp);
+  return { grp, stone, haloRing, x: gx, z: gz, phase: idx * 1.15, taken: false };
+});
+
+const keyObj = new THREE.Group();
+keyObj.position.set(-26, 2.0, 26);
+const keyRing = new THREE.Mesh(
+  new THREE.TorusGeometry(0.32, 0.08, 10, 20),
+  new THREE.MeshStandardMaterial({ color: 0xffd46b, emissive: 0xffb703, emissiveIntensity: 1.0 })
+);
+keyObj.add(keyRing);
+scene.add(keyObj);
+
+const chestObj = new THREE.Group();
+chestObj.position.set(0, 0.1, -24);
+const chestBox = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.9, 1.1), new THREE.MeshStandardMaterial({ color: 0x8f5b38 }));
+chestBox.position.y = 0.45;
+const chestLid = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.35, 1.14), new THREE.MeshStandardMaterial({ color: 0xffd46b }));
+chestLid.position.set(0, 1.0, -0.5);
+chestObj.add(chestBox, chestLid);
+scene.add(chestObj);
+
+const sprayDrops = [];
+function spawnSpray() {
+  if (!state.started || state.waterAmmo <= 0) {
+    showNotice('💧 نفد الماء؛ توجّهي إلى السوبر ماركت أو الحديقة');
+    return;
+  }
+  state.waterAmmo--;
+  updateHud();
+  playSequence([760, 1020], 0.06, 'sine', 0.075);
+
+  const dir = new THREE.Vector3(-Math.sin(heroGroup.rotation.y), 0.3, -Math.cos(heroGroup.rotation.y)).normalize();
+  for (let i = 0; i < 6; i++) {
+    const drop = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), new THREE.MeshBasicMaterial({ color: 0x6ef2ff }));
+    drop.position.set(playerPos.x, playerPos.y + 1.3, playerPos.z);
+    scene.add(drop);
+    sprayDrops.push({
+      mesh: drop,
+      vel: new THREE.Vector3(dir.x * 12 + (Math.random() - 0.5) * 3, 2.4 + Math.random() * 2, dir.z * 12 + (Math.random() - 0.5) * 3),
+      life: 0.8
+    });
+  }
+}
+
+const gltfLoader = new GLTFLoader();
+let customHeroNode = null;
+
+function applyGlbSceneMap(modelMap) {
+  let replaced = 0;
+
+  if (modelMap.building) {
+    for (const b of buildingGroups) {
+      b.group.children.forEach(ch => { ch.visible = false; });
+      const inst = modelMap.building.clone(true);
+      inst.scale.set(b.w / 10, b.h / 20, b.d / 10);
+      b.group.add(inst);
+      replaced++;
+    }
+  }
+
+  if (modelMap.tree) {
+    for (const tr of treeGroups) {
+      tr.group.children.forEach(ch => { ch.visible = false; });
+      const inst = modelMap.tree.clone(true);
+      inst.scale.setScalar(0.95 * tr.scale);
+      tr.group.add(inst);
+      replaced++;
+    }
+  }
+
+  if (modelMap.car) {
+    for (const cg of carGroups) {
+      cg.children.forEach(ch => { ch.visible = false; });
+      const inst = modelMap.car.clone(true);
+      inst.scale.setScalar(0.85);
+      cg.add(inst);
+      replaced++;
+    }
+  }
+
+  if (modelMap.character) {
+    if (customHeroNode) heroBody.remove(customHeroNode);
+    defaultHeadGroup.visible = false;
+    customHeroNode = modelMap.character.clone(true);
+    customHeroNode.position.set(0, 1.35, 0);
+    customHeroNode.scale.setScalar(0.85);
+    heroBody.add(customHeroNode);
+    replaced++;
+  }
+
+  if (replaced > 0 && $('glbInfo')) {
+    $('glbInfo').textContent = `تم تفعيل النماذج بنجاح (${replaced} عنصر محدث في المدينة).`;
+  }
+  return replaced;
+}
+
+async function loadConfiguredGlbs() {
+  const entries = Object.entries(configuredGLBUrls);
+  if (!entries.length) return;
+  const loaded = {};
+  for (const [key, url] of entries) {
+    try {
+      const gltf = await new Promise((res, rej) => gltfLoader.load(url, res, undefined, rej));
+      loaded[key] = gltf.scene;
+    } catch (e) {
+      console.warn('GLB URL load skipped:', key, e);
+    }
+  }
+  if (Object.keys(loaded).length) applyGlbSceneMap(loaded);
+}
+
+$('glbPicker')?.addEventListener('change', async e => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  const loaded = {};
+  for (const file of files) {
+    const n = file.name.toLowerCase();
+    let slot = 'building';
+    if (n.includes('tree')) slot = 'tree';
+    else if (n.includes('car') || n.includes('sedan') || n.includes('suv')) slot = 'car';
+    else if (n.includes('char') || n.includes('hero') || n.includes('head')) slot = 'character';
+    try {
+      const buf = await file.arrayBuffer();
+      const gltf = await new Promise((res, rej) => gltfLoader.parse(buf, '', res, rej));
+      loaded[slot] = gltf.scene;
+    } catch (err) {
+      console.warn('GLB file parse error:', file.name, err);
+    }
+  }
+  const count = applyGlbSceneMap(loaded);
+  if (count > 0) {
+    playSequence([587.33, 880, 1174.66], 0.08, 'triangle', 0.09);
+    showNotice('📦 تم تطبيق نماذج GLB المختارة في المدينة');
+  } else {
+    showNotice('⚠️ لم يتمكن المتصفح من قراءة ملفات GLB');
+  }
+});
+
+const pressedKeys = new Set();
+const stick = { x: 0, y: 0, active: false, pointerId: null };
+let camYaw = 0, camPitch = 0.28, camDist = 7.8;
+const camPosSmooth = new THREE.Vector3(0, 5, 22);
+const camLookSmooth = new THREE.Vector3(0, 1.3, 14);
+
+function canStandAt(x, z) {
+  if (Math.abs(x) > 68 || Math.abs(z) > 68) return false;
+  for (const b of boxColliders) {
+    if (x > b.minX - 0.45 && x < b.maxX + 0.45 && z > b.minZ - 0.45 && z < b.maxZ + 0.45) return false;
+  }
+  for (const c of circleColliders) {
+    if (Math.hypot(x - c.x, z - c.z) < c.r + 0.42) return false;
+  }
+  return true;
+}
+
+function findNearestSpot() {
+  if (keyObj.visible && Math.hypot(playerPos.x - keyObj.position.x, playerPos.z - keyObj.position.z) <= 2.3) {
+    return { kind: 'key', label: 'التقطي المفتاح الذهبي' };
+  }
+  if (!state.openedChest && Math.hypot(playerPos.x - chestObj.position.x, playerPos.z - chestObj.position.z) <= 2.6) {
+    return { kind: 'chest', label: state.hasKey ? 'افتحي صندوق الكنز' : 'الصندوق يحتاج المفتاح الذهبي' };
+  }
+  for (const sp of spotsOfInterest) {
+    if (sp.watered) continue;
+    if (Math.hypot(playerPos.x - sp.x, playerPos.z - sp.z) <= 2.4) return sp;
+  }
+  return null;
+}
+
+function runAction() {
+  if (state.seatMode) {
+    const prevMode = state.seatMode;
+    state.seatMode = null;
+    if (prevMode === 'swing') {
+      playerPos.set(-18.8, 0.08, 19.3);
+      velY = 0; onGround = true;
+    }
+    playNote(440, 0.1, 'sine', 0.07);
+    showNotice('نهضتِ من مكانك');
+    return;
+  }
+  const sp = findNearestSpot();
+  if (!sp) return;
+
+  if (sp.kind === 'key') {
+    keyObj.visible = false;
+    state.hasKey = true;
+    playSequence([659.25, 880, 1174.66], 0.09, 'sine', 0.1);
+    showNotice('🗝️ حصلتِ على المفتاح الذهبي!');
+    updateHud();
+  } else if (sp.kind === 'chest') {
+    if (!state.hasKey) {
+      playNote(220, 0.16, 'sawtooth', 0.06);
+      showNotice('🔒 ابحثي عن المفتاح الذهبي أولاً');
+      return;
+    }
+    state.openedChest = true;
+    state.coins += 100;
+    chestLid.rotation.x = 1.45;
+    playSequence([523.25, 659.25, 783.99, 1046.5, 1318.5], 0.11, 'triangle', 0.11);
+    updateHud();
+    setTimeout(() => {
+      $('winSummary').textContent = `الجواهر: ${state.gems}/5 · العملات: ${state.coins} · الزهور المزهرة: ${state.flowersBloomed}/3`;
+      $('winModal').classList.add('open');
+    }, 550);
+  } else if (sp.bloom) {
+    if (state.waterCharges <= 0 && state.waterAmmo <= 0) {
+      showNotice('💧 لا يوجد ماء كافٍ لسقي الحوض');
+      return;
+    }
+    if (state.waterCharges > 0) state.waterCharges--;
+    else state.waterAmmo = Math.max(0, state.waterAmmo - 2);
+    sp.watered = true;
+    sp.bloom.visible = true;
+    state.flowersBloomed++;
+    state.coins += 20;
+    playSequence([523.25, 659.25, 987.77], 0.09, 'sine', 0.09);
+    showNotice(`🌸 أزهرت زهرة في الحديقة (${state.flowersBloomed}/3)`);
+    updateHud();
+  } else if (sp.kind === 'bench' || sp.kind === 'swing') {
+    state.seatMode = sp.kind;
+    playNote(523, 0.11, 'sine', 0.07);
+    showNotice(sp.kind === 'swing' ? '🛝 استمتعي بالمرجوحة' : '🪑 استراحة هادئة');
+  } else if (sp.kind === 'shop') {
+    if (state.coins >= 20) {
+      state.coins -= 20;
+      state.waterAmmo = 12;
+      state.waterCharges = Math.min(5, state.waterCharges + 2);
+      state.boostUntil = performance.now() / 1000 + 18;
+      playSequence([493.88, 659.25, 880], 0.08, 'triangle', 0.09);
+      showNotice('⚡ تم تعبئة الماء وتفعيل تعزيز السرعة');
+      updateHud();
+    } else {
+      showNotice('🪙 تحتاجين إلى 20 عملة للتزود');
+    }
+  }
+}
+
+function paintRadar(targetCv, isBig) {
+  if (!targetCv) return;
+  const ctx = targetCv.getContext('2d');
+  const w = targetCv.width, h = targetCv.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#182038';
+  ctx.fillRect(0, 0, w, h);
+
+  const sc = w / 140;
+  const pt = (wx, wz) => [w / 2 + wx * sc, h / 2 + wz * sc];
+
+  ctx.fillStyle = '#333d5c';
+  ctx.fillRect(w / 2 - 6.7 * sc, 0, 13.4 * sc, h);
+  ctx.fillRect(0, h / 2 - 6.7 * sc, w, 13.4 * sc);
+
+  for (const g of gemsList) {
+    if (g.taken) continue;
+    const [gx, gz] = pt(g.x, g.z);
+    ctx.fillStyle = '#c97cff';
+    ctx.beginPath(); ctx.arc(gx, gz, isBig ? 6 : 3.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  if (keyObj.visible) {
+    const [kx, kz] = pt(keyObj.position.x, keyObj.position.z);
+    ctx.fillStyle = '#4ef2e5';
+    ctx.beginPath(); ctx.arc(kx, kz, isBig ? 7 : 4, 0, Math.PI * 2); ctx.fill();
+  }
+
+  const [cx, cz] = pt(chestObj.position.x, chestObj.position.z);
+  ctx.fillStyle = '#ffd46b';
+  ctx.fillRect(cx - (isBig ? 5 : 3), cz - (isBig ? 5 : 3), isBig ? 10 : 6, isBig ? 10 : 6);
+
+  const [px, pz] = pt(playerPos.x, playerPos.z);
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(px, pz, isBig ? 7 : 4.5, 0, Math.PI * 2); ctx.fill();
+}
+
+$('playStartBtn').addEventListener('click', () => {
+  state.started = true;
+  state.paused = false;
+  $('startOverlay').classList.add('hidden');
+  $('ui').classList.add('show');
+  wakeAudio();
+  playSequence([523.25, 659.25, 783.99], 0.09, 'triangle', 0.085);
+  updateHud();
+  showNotice('✨ أهلاً بكِ في عالم كنز المدينة الجديد');
+});
+
+document.querySelectorAll('.pick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pick-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.themeIndex = Number(btn.dataset.theme || 0);
+    applyHeroPalette();
+    wakeAudio();
+    playNote(620, 0.08, 'sine', 0.06);
+  });
+});
+
+$('camBtn').addEventListener('click', () => {
+  camYaw = 0; camPitch = 0.28;
+  playNote(540, 0.08, 'sine', 0.06);
+  showNotice('🎥 تم ضبط الكاميرا');
+});
+
+$('soundBtn').addEventListener('click', () => {
+  state.soundOn = !state.soundOn;
+  syncAudioControls();
+  if (state.soundOn) {
+    wakeAudio();
+    playSequence([587.33, 880], 0.09, 'sine', 0.09);
+    showNotice('🔊 الأصوات مفعّلة');
+  } else {
+    showNotice('🔇 تم إيقاف الأصوات');
+  }
+});
+
+$('musicBtn').addEventListener('click', () => {
+  state.musicOn = !state.musicOn;
+  syncAudioControls();
+  if (state.musicOn) {
+    wakeAudio();
+    playSequence([440, 554.37, 659.25], 0.08, 'sine', 0.075);
+    showNotice('🎵 موسيقى الخلفية مفعّلة');
+  } else {
+    showNotice('🎵 تم إيقاف موسيقى الخلفية');
+  }
+});
+
+$('toggleSound').addEventListener('click', () => {
+  state.soundOn = !state.soundOn;
+  syncAudioControls();
+  if (state.soundOn) { wakeAudio(); playSequence([587.33, 880], 0.09, 'sine', 0.08); }
+});
+$('toggleMusic').addEventListener('click', () => {
+  state.musicOn = !state.musicOn;
+  syncAudioControls();
+  if (state.musicOn) { wakeAudio(); playSequence([440, 659.25], 0.08, 'sine', 0.07); }
+});
+
+$('cfgBtn').addEventListener('click', () => {
+  state.paused = true;
+  $('cfgModal').classList.add('open');
+});
+$('closeCfgBtn').addEventListener('click', () => {
+  state.paused = false;
+  $('cfgModal').classList.remove('open');
+});
+
+$('resetRunBtn').addEventListener('click', () => {
+  state.gems = 0; state.coins = 0; state.hasKey = false; state.openedChest = false;
+  state.waterAmmo = 12; state.waterCharges = 3; state.flowersBloomed = 0; state.seatMode = null;
+  gemsList.forEach(g => { g.taken = false; g.grp.visible = true; });
+  flowerBeds.forEach(fb => { fb.watered = false; fb.bloom.visible = false; });
+  keyObj.visible = true;
+  chestLid.rotation.x = 0;
+  playerPos.set(0, 0.08, 14);
+  state.paused = false;
+  $('cfgModal').classList.remove('open');
+  updateHud();
+  showNotice('🔄 بدأت مغامرة جديدة');
+});
+
+$('openMapBtn').addEventListener('click', () => {
+  state.mapOpen = true;
+  paintRadar($('mapFull'), true);
+  $('mapModal').classList.add('open');
+});
+$('closeMapBtn').addEventListener('click', () => {
+  state.mapOpen = false;
+  $('mapModal').classList.remove('open');
+});
+
+$('keepExploringBtn').addEventListener('click', () => $('winModal').classList.remove('open'));
+$('playAgainBtn').addEventListener('click', () => {
+  $('winModal').classList.remove('open');
+  $('resetRunBtn').click();
+});
+
+$('btnJump').addEventListener('click', () => {
+  if (!state.started) return;
+  if (state.seatMode) {
+    state.seatMode = null;
+    playerPos.set(-18.8, 0.08, 19.6);
+    velY = 5.5; onGround = false;
+    playNote(440, 0.1, 'sine', 0.07);
+    showNotice('نزلتِ من المرجوحة');
+    return;
+  }
+  if (onGround) {
+    velY = 8.4; onGround = false;
+    playNote(370, 0.11, 'sine', 0.07);
+  }
+});
+$('btnRun').addEventListener('pointerdown', () => { state.sprintHeld = true; });
+window.addEventListener('pointerup', () => { state.sprintHeld = false; });
+$('btnSpray').addEventListener('click', spawnSpray);
+$('btnAct').addEventListener('click', () => { if (state.started) runAction(); });
+$('btnRescue').addEventListener('click', () => {
+  state.seatMode = null;
+  playerPos.set(0, 0.08, 14);
+  velY = 0; onGround = true;
+  playNote(460, 0.1, 'triangle', 0.07);
+  showNotice('↺ تم إرجاعكِ إلى الساحة');
+});
+
+const stickArea = $('stickArea'), stickThumb = $('stickThumb');
+function setStickFromPointer(cx, cy) {
+  const r = stickArea.getBoundingClientRect();
+  const maxR = r.width * 0.36;
+  let dx = cx - (r.left + r.width / 2);
+  let dy = cy - (r.top + r.height / 2);
+  const d = Math.hypot(dx, dy);
+  if (d > maxR) { dx = (dx / d) * maxR; dy = (dy / d) * maxR; }
+  stick.x = dx / maxR;
+  stick.y = -dy / maxR;
+  stickThumb.style.transform = `translate(${dx}px,${dy}px)`;
+}
+function clearStick() {
+  stick.active = false; stick.pointerId = null; stick.x = 0; stick.y = 0;
+  stickThumb.style.transform = 'translate(0px,0px)';
+}
+stickArea.addEventListener('pointerdown', e => {
+  e.stopPropagation();
+  wakeAudio();
+  stick.active = true; stick.pointerId = e.pointerId;
+  stickArea.setPointerCapture(e.pointerId);
+  setStickFromPointer(e.clientX, e.clientY);
+});
+stickArea.addEventListener('pointermove', e => {
+  if (stick.active && e.pointerId === stick.pointerId) setStickFromPointer(e.clientX, e.clientY);
+});
+stickArea.addEventListener('pointerup', e => { if (e.pointerId === stick.pointerId) clearStick(); });
+stickArea.addEventListener('pointercancel', e => { if (e.pointerId === stick.pointerId) clearStick(); });
+
+let dragCamId = null, prevX = 0, prevY = 0;
+canvas.addEventListener('pointerdown', e => {
+  if (stick.active && e.pointerId === stick.pointerId) return;
+  wakeAudio();
+  dragCamId = e.pointerId; prevX = e.clientX; prevY = e.clientY;
+});
+window.addEventListener('pointermove', e => {
+  if (e.pointerId !== dragCamId || !state.started || state.paused) return;
+  const dx = e.clientX - prevX, dy = e.clientY - prevY;
+  prevX = e.clientX; prevY = e.clientY;
+  camYaw -= dx * 0.0065;
+  camPitch = Math.max(0.08, Math.min(0.92, camPitch + dy * 0.005));
+});
+window.addEventListener('pointerup', e => { if (e.pointerId === dragCamId) dragCamId = null; });
+
+window.addEventListener('keydown', e => {
+  pressedKeys.add(e.code);
+  if (e.code === 'Space' && state.started && onGround && !state.seatMode) {
+    velY = 8.4; onGround = false;
+  }
+  if (e.code === 'KeyE' && state.started) runAction();
+  if (e.code === 'KeyF' && state.started) spawnSpray();
+});
+window.addEventListener('keyup', e => pressedKeys.delete(e.code));
+
+let prevSec = performance.now() / 1000, clockSec = 0, mapSyncTimer = 0;
+
+function tick() {
+  requestAnimationFrame(tick);
+  const nowSec = performance.now() / 1000;
+  const dt = Math.min(0.05, Math.max(0.001, nowSec - prevSec));
+  prevSec = nowSec;
+  clockSec += dt;
+
+  const simHour = (9 + clockSec / 60) % 24;
+  const hh = Math.floor(simHour), mm = Math.floor((simHour - hh) * 60);
+  $('clockText').textContent = `${hh >= 19 || hh < 5 ? '🌙' : '☀️'} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  const nightMix = (hh >= 19 || hh < 5) ? 0.82 : 0.12;
+  lampBulbs.forEach(m => { m.emissiveIntensity = 0.25 + nightMix * 1.3; });
+
+  for (const tc of trafficCars) {
+    tc.t = (tc.t + (tc.speed * dt) / (tc.to - tc.from) + 2) % 1;
+    const posAlong = tc.from + (tc.to - tc.from) * tc.t;
+    if (tc.axis === 'z') {
+      tc.mesh.position.set(tc.lane, 0.05, posAlong);
+      tc.mesh.rotation.y = tc.speed > 0 ? Math.PI : 0;
+    } else {
+      tc.mesh.position.set(posAlong, 0.05, tc.lane);
+      tc.mesh.rotation.y = tc.speed > 0 ? -Math.PI / 2 : Math.PI / 2;
+    }
+  }
+
+  const activePlay = state.started && !state.paused;
+  if (activePlay && state.seatMode) {
+    const kFwd = (pressedKeys.has('KeyW') || pressedKeys.has('ArrowUp') ? 1 : 0) - (pressedKeys.has('KeyS') || pressedKeys.has('ArrowDown') ? 1 : 0);
+    const kSide = (pressedKeys.has('KeyD') || pressedKeys.has('ArrowRight') ? 1 : 0) - (pressedKeys.has('KeyA') || pressedKeys.has('ArrowLeft') ? 1 : 0);
+    if (Math.hypot(stick.x + kSide, stick.y + kFwd) > 0.35) {
+      state.seatMode = null;
+      playerPos.set(-18.8, 0.08, 19.5);
+      showNotice('نهضتِ من مكانك');
+    }
+  }
+  if (activePlay && !state.seatMode) {
+    let fwd = (pressedKeys.has('KeyW') || pressedKeys.has('ArrowUp') ? 1 : 0) - (pressedKeys.has('KeyS') || pressedKeys.has('ArrowDown') ? 1 : 0);
+    let side = (pressedKeys.has('KeyD') || pressedKeys.has('ArrowRight') ? 1 : 0) - (pressedKeys.has('KeyA') || pressedKeys.has('ArrowLeft') ? 1 : 0);
+    fwd += stick.y; side += stick.x;
+    const mag = Math.hypot(fwd, side);
+    if (mag > 1) { fwd /= mag; side /= mag; }
+
+    const fast = Boolean(state.sprintHeld || pressedKeys.has('ShiftLeft') || pressedKeys.has('ShiftRight'));
+    let spd = fast ? 10.6 : 7.2;
+    if (nowSec < state.boostUntil) spd *= 1.25;
+
+    const mx = (-Math.sin(camYaw) * fwd + Math.cos(camYaw) * side) * spd * dt;
+    const mz = (-Math.cos(camYaw) * fwd - Math.sin(camYaw) * side) * spd * dt;
+    if (canStandAt(playerPos.x + mx, playerPos.z)) playerPos.x += mx;
+    if (canStandAt(playerPos.x, playerPos.z + mz)) playerPos.z += mz;
+
+    const walking = mag > 0.08;
+    if (walking) {
+      if (onGround) playFootstep(fast);
+      const targetYaw = Math.atan2(-mx, -mz);
+      const diff = Math.atan2(Math.sin(targetYaw - heroGroup.rotation.y), Math.cos(targetYaw - heroGroup.rotation.y));
+      heroGroup.rotation.y += diff * Math.min(1, dt * 12);
+    }
+
+    velY -= 19 * dt;
+    playerPos.y += velY * dt;
+    if (playerPos.y <= 0.08) { playerPos.y = 0.08; velY = 0; onGround = true; }
+
+    const swingAmt = walking ? Math.min(1, mag) * (fast ? 0.72 : 0.46) : 0;
+    stridePhase += walking ? dt * (fast ? 13 : 9) : dt * 2;
+    legL.rotation.x = Math.sin(stridePhase) * swingAmt;
+    legR.rotation.x = -Math.sin(stridePhase) * swingAmt;
+    armL.rotation.x = -Math.sin(stridePhase) * swingAmt * 0.8;
+    armR.rotation.x = Math.sin(stridePhase) * swingAmt * 0.8;
+
+    for (const g of gemsList) {
+      if (!g.taken && Math.hypot(playerPos.x - g.x, playerPos.z - g.z) <= 1.5) {
+        g.taken = true;
+        g.grp.visible = false;
+        state.gems++;
+        state.coins += 15;
+        playSequence([587.33, 783.99, 1046.5], 0.08, 'triangle', 0.09);
+        showNotice(`💎 جمعتِ جوهرة (${state.gems}/5)`);
+        if (state.gems >= 5 && !state.hasKey) {
+          state.hasKey = true;
+          playSequence([659.25, 880, 1174.66], 0.09, 'sine', 0.1);
+          showNotice('🗝️ ظهر المفتاح الذهبي!');
+        }
+        updateHud();
+      }
+    }
+
+    const pr = $('promptBanner');
+    if (state.seatMode) {
+      pr.textContent = '✋ انهضي من مكانك (زر تفاعل / قفز / تحريك)';
+      pr.classList.add('show');
+    } else {
+      const nearSp = findNearestSpot();
+      if (nearSp) {
+        pr.textContent = `✋ ${nearSp.label} (زر تفاعل / E)`;
+        pr.classList.add('show');
+      } else {
+        pr.classList.remove('show');
+      }
+    }
+  }
+
+  const swingAngle = Math.sin(clockSec * (state.seatMode === 'swing' ? 2.6 : 1.0)) * (state.seatMode === 'swing' ? 0.42 : 0.06);
+  swingPivot.rotation.x = swingAngle;
+  if (state.seatMode === 'swing') {
+    // Follow the swing seat arc cleanly and allow easy exit via action, jump, move, or rescue
+    const armLen = 2.18;
+    const seatY = 3.05 - Math.cos(swingAngle) * armLen;
+    const seatZ = Math.sin(swingAngle) * armLen;
+    playerPos.set(-18.8, Math.max(0.18, seatY + 0.08), 22 + seatZ);
+    heroGroup.rotation.y = Math.PI;
+  } else if (state.seatMode === 'bench') {
+    heroBody.position.y = -0.32;
+  } else {
+    heroBody.position.y = 0;
+  }
+
+  heroGroup.position.copy(playerPos);
+
+  for (const g of gemsList) {
+    if (g.taken) continue;
+    g.grp.position.y = 1.0 + Math.sin(clockSec * 2.2 + g.phase) * 0.18;
+    g.stone.rotation.y += dt * 1.4;
+  }
+  if (keyObj.visible) {
+    keyObj.rotation.y += dt;
+    keyObj.position.y = 2.0 + Math.sin(clockSec * 2.4) * 0.2;
+  }
+
+  for (let i = sprayDrops.length - 1; i >= 0; i--) {
+    const d = sprayDrops[i];
+    d.life -= dt;
+    d.mesh.position.addScaledVector(d.vel, dt);
+    d.vel.y -= 8 * dt;
+    if (d.life <= 0) {
+      scene.remove(d.mesh);
+      d.mesh.geometry.dispose();
+      d.mesh.material.dispose();
+      sprayDrops.splice(i, 1);
+    }
+  }
+
+  for (const fn of animatedProps) fn(clockSec);
+
+  const desiredCam = new THREE.Vector3(
+    playerPos.x + Math.sin(camYaw) * camDist * Math.cos(camPitch),
+    Math.max(1.1, playerPos.y + 2.1 + Math.sin(camPitch) * camDist * 0.65),
+    playerPos.z + Math.cos(camYaw) * camDist * Math.cos(camPitch)
+  );
+  camPosSmooth.lerp(desiredCam, 1 - Math.exp(-dt * 10));
+  camLookSmooth.lerp(new THREE.Vector3(playerPos.x, playerPos.y + 1.35, playerPos.z), 1 - Math.exp(-dt * 10));
+  camera.position.copy(camPosSmooth);
+  camera.lookAt(camLookSmooth);
+  skyDome.position.copy(camera.position);
+
+  mapSyncTimer += dt;
+  if (mapSyncTimer > 0.16 && state.started) {
+    mapSyncTimer = 0;
+    paintRadar($('miniCanvas'), false);
+    if (state.mapOpen) paintRadar($('mapFull'), true);
+  }
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
+  renderer.setSize(window.innerWidth, window.innerHeight, false);
+});
+
+syncAudioControls();
+updateHud();
+loadConfiguredGlbs();
+tick();
+</script>
+</body>
+</html>
